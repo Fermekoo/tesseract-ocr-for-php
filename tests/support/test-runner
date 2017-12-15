@@ -1,0 +1,54 @@
+#!/usr/bin/env php
+<?php
+function _require() {
+    require_once join(DIRECTORY_SEPARATOR, func_get_args());
+}
+
+_require(__DIR__, '..', '..', 'src', 'Option', 'Config.php');
+_require(__DIR__, '..', '..', 'src', 'Option', 'Lang.php');
+_require(__DIR__, '..', '..', 'src', 'Option', 'Psm.php');
+_require(__DIR__, '..', '..', 'src', 'Option', 'TessdataDir.php');
+_require(__DIR__, '..', '..', 'src', 'Option', 'UserPatterns.php');
+_require(__DIR__, '..', '..', 'src', 'Option', 'UserWords.php');
+_require(__DIR__, '..', '..', 'src', 'Shortcut', 'Whitelist.php');
+_require(__DIR__, '..', '..', 'src', 'Command.php');
+_require(__DIR__, '..', '..', 'src', 'TesseractOCR.php');
+_require(__DIR__, 'TestCase.php');
+_require(__DIR__, '..', 'UnitTests.php');
+_require(__DIR__, '..', 'FunctionalTests.php');
+
+if (extension_loaded('xdebug')) {
+    xdebug_start_code_coverage( XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE );
+}
+
+new thiagoalessio\TesseractOCR\Tests\UnitTests();
+new thiagoalessio\TesseractOCR\Tests\FunctionalTests();
+echo PHP_EOL;
+
+if (extension_loaded('xdebug')) {
+    $coverage = xdebug_get_code_coverage();
+
+    $arr = [];
+    $arr['fileReports'] = [];
+
+    foreach ($coverage as $filename => $rest) {
+        $aux = [];
+        $aux['filename'] = $filename;
+        $aux['coverage'] = [];
+
+        foreach ($rest as $line => $status) {
+            if     ($status == 1)  $aux['coverage'][$line] = 1;
+            elseif ($status == -1) $aux['coverage'][$line] = 0;
+    //        else                   $aux['coverage'][$line] = '?'.$status;
+        }
+        $covered = sizeof(array_filter($aux['coverage']));
+        $codelines = sizeof($aux['coverage']);
+        $aux['total'] = $codelines == 0 ? 0 : $covered/$codelines;
+        $aux['codeLines'] = $codelines;
+
+
+        $arr['fileReports'][] = $aux;
+    }
+
+    file_put_contents('report.json', json_encode($arr, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+}
